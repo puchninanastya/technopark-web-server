@@ -24,7 +24,7 @@ namespace monzza {
 
         protected:
             bool readConfigValueByName( std::string configLine, std::string configName,
-                                        int32_t& configValue) const;
+                                        int32_t& configValue ) const;
             bool readConfigValueByName( std::string configLine, std::string configName,
                                         std::string& configValue ) const;
 

@@ -14,12 +14,15 @@ bool CoreSettings::isValid() {
     return true;
 }
 
-bool CoreSettings::readConfigValueByName( std::string configLine, std::string configName, int& configValue) const {
+bool CoreSettings::readConfigValueByName( std::string configLine, std::string configName,
+                                          int& configValue ) const {
     if ( configLine.find( configName ) == std::string::npos ) {
         return false;
     }
-    std::stringstream configLineStream(configLine);
+
+    std::stringstream configLineStream( configLine );
     std::string tmp;
+
     while ( configLineStream ) {
         if ( configLineStream >> tmp >> configValue ) {
             return true;
@@ -28,12 +31,15 @@ bool CoreSettings::readConfigValueByName( std::string configLine, std::string co
     return false;
 }
 
-bool CoreSettings::readConfigValueByName( std::string configLine, std::string configName, std::string& configValue) const {
+bool CoreSettings::readConfigValueByName( std::string configLine, std::string configName,
+                                          std::string& configValue ) const {
     if ( configLine.find( configName ) == std::string::npos ) {
         return false;
     }
-    std::stringstream configLineStream(configLine);
+
+    std::stringstream configLineStream( configLine );
     std::string tmp;
+
     if ( configLineStream >> tmp >> configValue )
         return true;
     return false;
@@ -48,16 +54,16 @@ bool CoreSettings::readSettingsFromConfigFile( std::string filePath ) {
         return false;
     }
 
-    std::string config_line;
+    std::string configLine;
 
-    while( std::getline( configFile, config_line ) ) {
-        if (readConfigValueByName(config_line, "cpu_limit ", cpuLimit_) ||
-            readConfigValueByName(config_line, "thread_limit ", threadLimit_) ||
-            readConfigValueByName(config_line, "document_root ", documentRoot_)) {
+    while( std::getline( configFile, configLine ) ) {
+        if (readConfigValueByName( configLine, "cpu_limit ", cpuLimit_ ) ||
+            readConfigValueByName( configLine, "thread_limit ", threadLimit_ ) ||
+            readConfigValueByName( configLine, "document_root ", documentRoot_ )) {
             continue;
         } else {
             // TODO: log instead of cout
-            std::cout << "Wrong configuration line: " << config_line << std::endl;
+            std::cout << "Wrong configuration line: " << configLine << std::endl;
             return false;
         }
     }
@@ -65,7 +71,7 @@ bool CoreSettings::readSettingsFromConfigFile( std::string filePath ) {
     configFile.close();
 
     // TODO: log instead of cout
-    std::cout << "Configuration of core settings: " << config_line << std::endl
+    std::cout << "Configuration of core settings: " << std::endl
               << "CPU limit: " << cpuLimit_ << std::endl
               << "Thread limit: " << threadLimit_ << std::endl
               << "Document root: " << documentRoot_ << std::endl;

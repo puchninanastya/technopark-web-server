@@ -39,11 +39,13 @@ WorkerThread::WorkerThread() {
     breakThreadLoop_  = false;
     bufPtr_ = new uint8_t[ 8192 ];
     bufSize_ = 8192;
+    httpParser_ = new HttpParser();
     events_.push_back( inputServiceMessages_.getEventHandle() );
 }
 
 WorkerThread::~WorkerThread() {
     delete[] bufPtr_;
+    delete httpParser_;
 }
 
 bool WorkerThread::initialize( Logger* logger, Table* table, WorkerSettings* workerSettings ) {
@@ -58,6 +60,8 @@ bool WorkerThread::initialize( Logger* logger, Table* table, WorkerSettings* wor
 
     table_ = table;
     workerSettings_ = workerSettings;
+
+    httpParser_->initialize( getLogger() );
 
     return true;
 }
@@ -150,14 +154,15 @@ void WorkerThread::stopServiceMsgHandler( WorkerThreadServiceMessage* workerThre
 }
 
 void WorkerThread::processTcpServerExchangeSocketEvent( uint32_t index ) {
+    notificationMsg("Process event with index ");
     cpl::TcpServerExchangeSocket* tcpServerExchangeSocket = ( tcpServerExchangeSockets_[ ( index - 1 ) ] ).first;
     int32_t result = tcpServerExchangeSocket->receive( bufPtr_, bufSize_ );
     if ( result > 0 ) {
         notificationMsg( "Processing connection request." );
-        tcpServerExchangeSocket->send( bufPtr_, ( uint16_t )result );
+        httpParser_->addData( bufPtr_, ( uint16_t )result );
+        // tcpServerExchangeSocket->send( bufPtr_, ( uint16_t )result );
         notificationMsg( "Processed connection request." );
-    }
-    else {
+    } else {
         notificationMsg( "Deleting connection." );
         delete tcpServerExchangeSockets_[ index - 1 ].first;
         delete tcpServerExchangeSockets_[ index - 1 ].second;

@@ -1,8 +1,5 @@
 #include "http_parser.hpp"
 
-#include <cstring>
-#include <string>
-
 using namespace monzza::http;
 
 HttpParser::HttpParser() :
@@ -13,6 +10,19 @@ HttpParser::HttpParser() :
 
 HttpParser::~HttpParser() {
     delete buffer_;
+    delete request_;
+}
+
+bool HttpParser::initialize( Logger* logger ) {
+    if ( logger == nullptr ) {
+        return false;
+    }
+
+    setLogger( logger );
+    std::string moduleName( "HttpParser" );
+    setModuleName( moduleName );
+
+    return true;
 }
 
 
@@ -26,11 +36,20 @@ bool HttpParser::addData( uint8_t* buf, uint32_t bufSize ) {
         return false;
     }
 
+    notificationMsg( "Adding data to parser." );
+    std::cout << std::endl;
+    for ( int i = 0; i < bufSize; i++ ) {
+        std::cout << buf[i];
+    }
+    std::cout << std::endl;
+
     buffer_->write( buf, bufSize );
 
     if ( parse() == Completed ) {
+        notificationMsg( "Parsing completed successfully." );
         return true;
     }
+    notificationMsg( "Parsing failed." );
     return false;
 }
 

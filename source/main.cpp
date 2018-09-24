@@ -53,14 +53,6 @@ void application() {
         return;
     }
 
-    // test http parser
-    uint8_t inputBuffer[] = "GET /index.php HTTP/1.1\r\nHost: example.com\r\nAccept: text/html\r\n\r\n";
-    auto httpParser = new monzza::http::HttpParser();
-
-    if ( !httpParser->addData( inputBuffer, sizeof inputBuffer ) ) {
-        return;
-    }
-
     // test echo tcp server with thread pool
     auto ipAddress = new cpl::IpAddress;
     ipAddress->setPortNumber( monzzaCoreSettings->getListeningPort() );

@@ -3,6 +3,7 @@
 
 #include <cstdint>
 
+#include "../logger/log_functionality.hpp"
 #include "http_request.hpp"
 #include "buffer.hpp"
 
@@ -34,11 +35,12 @@ namespace monzza {
             ParsingError
         };
 
-        class HttpParser {
+        class HttpParser : public LogFunctionality {
         public:
             HttpParser();
             ~HttpParser();
 
+            bool initialize( Logger* logger );
             bool addData( uint8_t* buf, uint32_t bufSize );
 
         protected:
@@ -62,8 +64,6 @@ namespace monzza {
             HttpRequest* request_;
             HttpParserState state_;
         };
-
-
     }
 }
 

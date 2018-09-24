@@ -9,8 +9,11 @@
 
 #include "../logger/log_functionality.hpp"
 #include "../table/table.hpp"
+#include "../http_parser/http_parser.hpp"
 
 #include "worker_settings.hpp"
+
+using namespace monzza::http;
 
 // =================================================================
 // ========== WorkerThreadServiceMessage class declaration =========
@@ -75,6 +78,7 @@ private:
     WorkerSettings* workerSettings_;
     Table* table_;
     std::vector<std::pair<cpl::TcpServerExchangeSocket*, cpl::Event*>> tcpServerExchangeSockets_;
+    HttpParser* httpParser_;
 
     uint8_t* bufPtr_;
     uint16_t bufSize_;

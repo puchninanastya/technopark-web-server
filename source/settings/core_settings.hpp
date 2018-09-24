@@ -17,8 +17,8 @@ namespace monzza {
         bool readSettingsFromConfigFile( std::string filePath );
 
         std::string getConfigFilePath() const;
-        int32_t getCpuLimit() const;
-        int32_t getThreadLimit() const;
+        uint16_t getCpuLimit() const;
+        uint16_t getThreadLimit() const;
         // cpl::sockets::PortNum getListeningPort() const;
         uint16_t getListeningPort() const;
         std::string getDocumentRoot() const;

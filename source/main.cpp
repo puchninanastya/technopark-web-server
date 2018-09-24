@@ -1,6 +1,5 @@
 #include <iostream>
 #include <csignal>
-#include <string>
 
 #include "settings/core_settings.hpp"
 #include "http_parser/http_parser.hpp"
@@ -83,14 +82,15 @@ void application() {
         delete logger;
         delete ipAddress;
         delete masterSettings;
-    }
-    else {
+        delete monzzaCoreSettings;
+    } else {
         std::cout << "Failed to start HTTP server." << std::endl;
         delete master;
         logger->stop();
         delete logger;
         delete ipAddress;
         delete masterSettings;
+        delete monzzaCoreSettings;
     }
 }
 
@@ -99,8 +99,7 @@ int main() {
         std::cout << "Failed to initialize CPL library." << std::endl;
         getchar();
         return 1;
-    }
-    else {
+    } else {
         application();
         getchar();
         cpl::CplBase::close();

@@ -12,6 +12,11 @@
 
 #include "worker_settings.hpp"
 
+// =================================================================
+// ========== WorkerThreadServiceMessage class declaration =========
+// =================================================================
+
+
 class WorkerThreadServiceMessage {
 public:
     enum class ResponseType {
@@ -39,6 +44,11 @@ private:
 
     cpl::TcpServerExchangeSocket* tcpServerExchangeSocket_;
 };
+
+// ===================================================
+// ========== WorkerThread class declaration =========
+// ===================================================
+
 
 class WorkerThread : public LogFunctionality {
 public:

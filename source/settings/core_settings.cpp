@@ -84,11 +84,11 @@ std::string CoreSettings::getConfigFilePath() const {
     return configFilePath_;
 }
 
-int32_t CoreSettings::getCpuLimit() const {
+uint16_t CoreSettings::getCpuLimit() const {
     return cpuLimit_;
 }
 
-int32_t CoreSettings::getThreadLimit() const {
+uint16_t CoreSettings::getThreadLimit() const {
     return threadLimit_;
 }
 

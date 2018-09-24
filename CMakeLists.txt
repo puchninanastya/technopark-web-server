@@ -32,7 +32,24 @@ set(SOURCE_FILES source/main.cpp
         source/logger/logger.hpp
         source/logger/logger.cpp
         source/logger/logger_thread.hpp
-        source/logger/logger_thread.cpp)
+        source/logger/logger_thread.cpp
+
+        source/master/master_settings.hpp
+        source/master/master_settings.cpp
+        source/master/master_thread.hpp
+        source/master/master_thread.cpp
+        source/master/master.hpp
+        source/master/master.cpp
+
+        source/worker/worker_settings.hpp
+        source/worker/worker_settings.cpp
+        source/worker/worker_thread.hpp
+        source/worker/worker_thread.cpp
+        source/worker/worker.hpp
+        source/worker/worker.cpp
+
+        source/table/table.hpp
+        source/table/table.cpp)
 
 
 add_executable(monzza ${SOURCE_FILES})

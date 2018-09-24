@@ -1,6 +1,6 @@
 #include "http_request.hpp"
 
-using namespace monzza::core::http;
+using namespace monzza::http;
 
 HttpRequest::HttpRequest() :
         httpMethod_( HttpRequestMethod::UNDEFINED ),

@@ -4,7 +4,7 @@
 #include <fstream>
 #include <sstream>
 
-using namespace monzza::core;
+using namespace monzza;
 
 CoreSettings::CoreSettings() :
         cpuLimit_(0),
@@ -93,7 +93,7 @@ int32_t CoreSettings::getThreadLimit() const {
 }
 
 // cpl::sockets::PortNum CoreSettings::getListeningPort() const {
-int32_t CoreSettings::getListeningPort() const {
+uint16_t CoreSettings::getListeningPort() const {
     return listeningPort_;
 }
 

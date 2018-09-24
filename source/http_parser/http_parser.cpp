@@ -3,7 +3,7 @@
 #include <cstring>
 #include <string>
 
-using namespace monzza::core::http;
+using namespace monzza::http;
 
 HttpParser::HttpParser() :
     state_( HttpParserState::WaitingForHttpRequestMethodStart ) {

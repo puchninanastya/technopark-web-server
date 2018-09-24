@@ -55,15 +55,18 @@ bool HttpParser::addData( uint8_t* buf, uint32_t bufSize ) {
 
 HttpParsingResult HttpParser::parse() {
 
+    notificationMsg( "Parsing HttpRequest." );
     HttpRequestHeaderItem* currentHeaderItem = nullptr;
 
     while ( !buffer_->noMoreData() ) {
 
         switch ( state_ ) {
             case WaitingForHttpRequestMethodStart:
+                notificationMsg( "WaitingForHttpRequestMethodStart." );
                 switch ( tryToParseHttpRequestMethod() ) {
                     case Completed:
                         setState( WaitingForUriStart );
+                        notificationMsg( "WaitingForHttpRequestMethodStart Completed." );
                         break;
                     case NeedMoreData:
                         return NeedMoreData;
@@ -72,9 +75,11 @@ HttpParsingResult HttpParser::parse() {
                 }
                 break;
             case WaitingForUriStart:
+                notificationMsg( "WaitingForUriStart." );
                 switch ( tryToParseUri() ) {
                     case Completed:
                         setState( WaitingForH );
+                        notificationMsg( "WaitingForUriStart Completed." );
                         break;
                     case NeedMoreData:
                         return NeedMoreData;
@@ -83,64 +88,81 @@ HttpParsingResult HttpParser::parse() {
                 }
                 break;
             case WaitingForH:
+                notificationMsg( "WaitingForH." );
                 if ( buffer_->getCurrentPosChar() != 'H' ) {
                     return ParsingError;
                 }
                 buffer_->increaseCurrentPos();
                 setState( WaitingForHT );
+                notificationMsg( "WaitingForH Completed." );
                 break;
             case WaitingForHT:
+                notificationMsg( "WaitingForHT." );
                 if ( buffer_->getCurrentPosChar() != 'T' ) {
                     return ParsingError;
                 }
                 buffer_->increaseCurrentPos();
                 setState( WaitingForHTT );
+                notificationMsg( "WaitingForHT Completed." );
                 break;
             case WaitingForHTT:
+                notificationMsg( "WaitingForHTT." );
                 if ( buffer_->getCurrentPosChar() != 'T' ) {
                     return ParsingError;
                 }
                 buffer_->increaseCurrentPos();
                 setState( WaitingForHTTP );
+                notificationMsg( "WaitingForHTT Completed." );
                 break;
             case WaitingForHTTP:
+                notificationMsg( "WaitingForHTTP." );
                 if ( buffer_->getCurrentPosChar() != 'P' ) {
                     return ParsingError;
                 }
                 buffer_->increaseCurrentPos();
                 setState( WaitingForVersionSlash );
+                notificationMsg( "WaitingForHTTP Completed." );
                 break;
             case WaitingForVersionSlash:
+                notificationMsg( "WaitingForVersionSlash." );
                 if ( buffer_->getCurrentPosChar() != '/' ) {
                     return ParsingError;
                 }
                 buffer_->increaseCurrentPos();
                 setState( WaitingForVersionMajor );
+                notificationMsg( "WaitingForVersionSlash Completed." );
                 break;
             case WaitingForVersionMajor:
+                notificationMsg( "WaitingForVersionMajor." );
                 if ( !isDigitChar( buffer_->getCurrentPosChar() ) ) {
                     return ParsingError;
                 }
                 request_->setVersionMajor( (int8_t) buffer_->getCurrentPosChar() );
                 buffer_->increaseCurrentPos();
                 setState( WaitingForVersionDotSeparation );
+                notificationMsg( "WaitingForVersionMajor Completed." );
                 break;
             case WaitingForVersionDotSeparation:
+                notificationMsg( "WaitingForVersionDotSeparation." );
                 if ( buffer_->getCurrentPosChar() != '.') {
                     return ParsingError;
                 }
                 buffer_->increaseCurrentPos();
                 setState( WaitingForVersionMinor );
+                notificationMsg( "WaitingForVersionDotSeparation Completed." );
                 break;
             case WaitingForVersionMinor:
+                notificationMsg( "WaitingForVersionMinor." );
                 if ( !isDigitChar( buffer_->getCurrentPosChar() ) ) {
                     return ParsingError;
                 }
                 request_->setVersionMinor( (int8_t) buffer_->getCurrentPosChar() );
                 buffer_->increaseCurrentPos();
                 setState( WaitingForRequestLineCRLF );
+                notificationMsg( "WaitingForVersionMinor Completed." );
                 break;
             case WaitingForRequestLineCRLF:
+                notificationMsg( "WaitingForRequestLineCRLF." );
                 if ( buffer_->getCurrentPosChar() != '\r' ) {
                     return ParsingError;
                 }
@@ -150,8 +172,10 @@ HttpParsingResult HttpParser::parse() {
                 }
                 buffer_->increaseCurrentPos();
                 setState( WaitingForRequestHeaderItemStart );
+                notificationMsg( "WaitingForRequestLineCRLF Completed." );
                 break;
             case WaitingForRequestHeaderItemStart:
+                notificationMsg( "WaitingForRequestHeaderItemStart." );
                 if ( buffer_->getCurrentPosChar() != '\r' ) {
                     setState( WaitingForRequestHeaderItemName );
                 } else {
@@ -159,10 +183,12 @@ HttpParsingResult HttpParser::parse() {
                 }
                 break;
             case WaitingForRequestHeaderItemName:
+                notificationMsg( "WaitingForRequestHeaderItemName." );
                 currentHeaderItem = new HttpRequestHeaderItem();
                 switch ( tryToParseRequestHeaderName( currentHeaderItem ) ) {
                     case Completed:
                         setState( WaitingForRequestHeaderItemValue );
+                        notificationMsg( "WaitingForRequestHeaderItemName Completed." );
                         break;
                     case NeedMoreData:
                         return NeedMoreData;
@@ -172,6 +198,7 @@ HttpParsingResult HttpParser::parse() {
                 }
                 break;
             case WaitingForRequestHeaderItemValue:
+                notificationMsg( "WaitingForRequestHeaderItemValue." );
                 if ( !currentHeaderItem ) {
                     return ParsingError;
                 }
@@ -180,6 +207,7 @@ HttpParsingResult HttpParser::parse() {
                         request_->addHeaderItem( currentHeaderItem );
                         currentHeaderItem = nullptr;
                         setState( WaitingForRequestHeaderItemCRLF );
+                        notificationMsg( "WaitingForRequestHeaderItemValue Completed." );
                         break;
                     case NeedMoreData:
                         return NeedMoreData;
@@ -189,6 +217,7 @@ HttpParsingResult HttpParser::parse() {
                 }
                 break;
             case WaitingForRequestHeaderItemCRLF:
+                notificationMsg( "WaitingForRequestHeaderItemCRLF." );
                 if ( buffer_->getCurrentPosChar() != '\r' ) {
                     return ParsingError;
                 }
@@ -198,8 +227,10 @@ HttpParsingResult HttpParser::parse() {
                 }
                 buffer_->increaseCurrentPos();
                 setState( WaitingForRequestHeaderItemStart );
+                notificationMsg( "WaitingForRequestHeaderItemCRLF Completed." );
                 break;
             case WaitingForEndRequestCRLF:
+                notificationMsg( "WaitingForEndRequestCRLF." );
                 if ( buffer_->getCurrentPosChar() != '\r' ) {
                     return ParsingError;
                 }
@@ -208,6 +239,7 @@ HttpParsingResult HttpParser::parse() {
                     return ParsingError;
                 }
                 buffer_->increaseCurrentPos();
+                notificationMsg( "WaitingForEndRequestCRLF Completed." );
                 return Completed;
             default:
                 break;

@@ -3,16 +3,36 @@ project(monzza)
 
 set(CMAKE_CXX_STANDARD 14)
 
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -pthread")
+
 set(SOURCE_FILES source/main.cpp
-        source/core/core_settings.cpp
-        source/core/core_settings.hpp
+
+        source/settings/core_settings.cpp
+        source/settings/core_settings.hpp
+
+        source/http_parser/http_parser.cpp
+        source/http_parser/http_parser.hpp
+        source/http_parser/http_request.cpp
+        source/http_parser/http_request.hpp
+        source/http_parser/buffer.cpp
+        source/http_parser/buffer.hpp
+
         external/cpl/cpl.hpp
         external/cpl/cpl.cpp
-        source/core/http_parser/http_parser.cpp
-        source/core/http_parser/http_parser.hpp
-        source/core/http_parser/http_request.cpp
-        source/core/http_parser/http_request.hpp
-        source/core/http_parser/buffer.cpp
-        source/core/http_parser/buffer.hpp)
+        external/cpl/cpl_event_queue.hpp
+        external/cpl/cpl_time.hpp
+
+        source/logger/local_logger.hpp
+        source/logger/local_logger.cpp
+        source/logger/log_functionality.hpp
+        source/logger/log_functionality.cpp
+        source/logger/log_level.hpp
+        source/logger/log_message.hpp
+        source/logger/log_message.cpp
+        source/logger/logger.hpp
+        source/logger/logger.cpp
+        source/logger/logger_thread.hpp
+        source/logger/logger_thread.cpp)
+
 
 add_executable(monzza ${SOURCE_FILES})

@@ -25,7 +25,7 @@ public:
     bool checkAvailableBufferSpace( uint32_t dataLen = 1 );
     bool checkAvailableDataSize( uint32_t dataLen = 1 );
     bool checkAvailableDataSizeFromPos( uint32_t pos, uint32_t dataLen = 1 );
-        bool copyToString( std::string& str, int32_t bufStartPos, uint32_t bytesToCopy );
+    bool copyToString( std::string& str, int32_t bufStartPos, uint32_t bytesToCopy );
     int32_t compareToString( int32_t bufPosToCompareFrom,
                              std::string stringToCompare, uint32_t numBytesToCompare );
 

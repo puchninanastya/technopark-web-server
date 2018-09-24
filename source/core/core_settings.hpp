@@ -6,6 +6,8 @@
 
 #include "../../external/cpl/cpl.hpp"
 
+#define MONZA_DEFAULT_HTTP_PORT 80
+
 namespace monzza {
     namespace core {
         class CoreSettings {

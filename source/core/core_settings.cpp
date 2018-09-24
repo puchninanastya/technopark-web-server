@@ -6,9 +6,10 @@
 
 using namespace monzza::core;
 
-CoreSettings::CoreSettings() : cpuLimit_(0), threadLimit_(0) {
-
-}
+CoreSettings::CoreSettings() :
+        cpuLimit_(0),
+        threadLimit_(0),
+        listeningPort_(MONZA_DEFAULT_HTTP_PORT) {}
 
 bool CoreSettings::isValid() {
     return true;

@@ -90,18 +90,13 @@ void application() {
         return;
     }
 
-<<<<<<< HEAD
     serverIpAddress = new cpl::IpAddress;
     serverIpAddress->setPortNumber( MONZZA_SERVER_PORT );
-=======
-    auto ipAddress = new cpl::IpAddress;
-    ipAddress->setPortNumber( 8085 );
->>>>>>> b63c75ade6c69f627dc316cd458b712b803fbce8
 
     masterSettings = new monzza::master::MasterSettings;
     masterSettings->setIpAddress( *serverIpAddress );
     masterSettings->setMaxPendingEvents( 5000 );
-    masterSettings->setNumberOfWorkers( monzzaCoreSettings->getCpuLimit() );
+    masterSettings->setNumberOfWorkers( monzzaCoreSettings->getThreadLimit() );
     masterSettings->setDocumentRoot( monzzaCoreSettings->getDocumentRoot() );
 
     master = new monzza::master::Master();

@@ -27,15 +27,12 @@ namespace monzza {
                 tcpServerExchangeSocketEvent_ = nullptr;
                 httpRequestParser_ = nullptr;
                 httpResponseSerializer_ = nullptr;
-                sendingFile_ = false;
             }
 
             cpl::TcpServerExchangeSocket* tcpServerExchangeSocket_;
             cpl::Event* tcpServerExchangeSocketEvent_;
             monzza::http::HttpRequestParser* httpRequestParser_;
             monzza::http::HttpResponseSerializer* httpResponseSerializer_;
-
-            bool sendingFile_;
             monzza::http::HttpFileDescription httpFileDescription_;
         };
 
@@ -89,8 +86,10 @@ namespace monzza {
 
             void processTcpServerExchangeSocketEvent( uint32_t index );
             bool processSocketData( uint32_t connectionIndex, int32_t readSize );
-            bool processHttpRequestForConnection( uint32_t connectionIndex, monzza::http::HttpRequest* request );
+            bool prepareAndSendHttpRequestForConnection( uint32_t connectionIndex,
+                                                         monzza::http::HttpRequest* request );
             bool tryToSendTheRestOfTheFile( uint32_t connectionIndex );
+            void setLowPriorityForConnection( uint32_t connectionIndex );
 
             void clearDataForConnection( uint32_t connectionIndex );
 

@@ -120,5 +120,6 @@ bool Buffer::copyToString( std::string& str, int32_t bufStartPos, uint32_t bytes
 
     str = std::string( ( char* ) bufToCopy, ( bytesToCopy ) ); // TODO: memory leak + fix
 
+    delete[] bufToCopy;
     return true;
 }

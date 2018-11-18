@@ -114,10 +114,13 @@ bool HttpFileSender::sendFileThroughSocket( cpl::TcpServerExchangeSocket* tcpSer
         sendfile( tcpServerExchangeSocket->getPlatformSocket(),
                   fileDescriptor,
                   &httpFileDescription.offset,
-                  httpFileDescription.fileSize - ( uint32_t )httpFileDescription.offset );
+                  1024000 );
 
-        if ( httpFileDescription.offset >= httpFileDescription.fileSize ) {
-                httpFileDescription.offset = 0;
+        if ( httpFileDescription.offset < httpFileDescription.fileSize ) {
+            httpFileDescription.sending = true;
+        }
+        else {
+            httpFileDescription.sending = false;
         }
 
         close( fileDescriptor );

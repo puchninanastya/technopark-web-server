@@ -110,8 +110,17 @@ void WorkerThread::operator()() {
 void WorkerThread::processInputServiceMessage() {
     WorkerThreadServiceMessage* workerThreadServiceMessage;
     inputServiceMessages_.tryPop( workerThreadServiceMessage );
-    serviceMsgHandler( workerThreadServiceMessage );
-    outputServiceMessages_.push( workerThreadServiceMessage );
+
+    bool needToSendResponseMessage = false;
+    if ( workerThreadServiceMessage->getCommandType() == WorkerThreadServiceMessage::CommandType::STOP ) {
+        needToSendResponseMessage = true;
+    }
+
+    serviceMsgHandler(workerThreadServiceMessage);
+
+    if ( needToSendResponseMessage ) {
+        outputServiceMessages_.push(workerThreadServiceMessage);
+    }
 }
 
 void WorkerThread::serviceMsgHandler( WorkerThreadServiceMessage* workerThreadServiceMessage ) {
@@ -161,6 +170,8 @@ void WorkerThread::newConnectionServiceMsgHandler( WorkerThreadServiceMessage* w
                                      ( uint32_t )tcpConnections_.size(), 0 );
 
     debugMsg( "Updated information about worker." );
+
+    delete workerThreadServiceMessage;
 }
 
 void WorkerThread::stopServiceMsgHandler( WorkerThreadServiceMessage* workerThreadServiceMessage ) {
@@ -168,6 +179,7 @@ void WorkerThread::stopServiceMsgHandler( WorkerThreadServiceMessage* workerThre
     events_.clear();
 
     for ( uint32_t i = 0; i < tcpConnections_.size(); i++ ) {
+        tcpConnections_[ i ].tcpServerExchangeSocket_->close();
         delete tcpConnections_[ i ].tcpServerExchangeSocket_;
         delete tcpConnections_[ i ].tcpServerExchangeSocketEvent_;
         delete tcpConnections_[ i ].httpRequestParser_;
@@ -178,31 +190,50 @@ void WorkerThread::stopServiceMsgHandler( WorkerThreadServiceMessage* workerThre
 }
 
 void WorkerThread::processTcpServerExchangeSocketEvent( uint32_t index ) {
-    debugMsg( "Process event with index " + std::to_string( index ) + "." );
-
     cpl::TcpServerExchangeSocket* tcpServerExchangeSocket;
-    tcpServerExchangeSocket = ( tcpConnections_.at( index - 1 ) ).tcpServerExchangeSocket_;
-    bool sendingFile = ( tcpConnections_.at( index - 1 ) ).sendingFile_;
+
+    uint32_t connectionIndex = index - 1;
+
+    tcpServerExchangeSocket = ( tcpConnections_.at( connectionIndex ) ).tcpServerExchangeSocket_;
+    bool sendingFile = ( tcpConnections_.at( connectionIndex ) ).httpFileDescription_.sending;
 
     if ( !sendingFile ) {
         int32_t result = tcpServerExchangeSocket->receive( bufPtr_, bufSize_ );
         if ( result > 0 ) {
             notificationMsg( "Processing connection request." );
-            if ( processSocketData( ( index - 1 ), result ) ) {
-                clearDataForConnection( index );
+            if ( processSocketData( ( connectionIndex ), result ) ) {
+                if ( !tcpConnections_[ connectionIndex ].httpFileDescription_.sending ) {
+                    clearDataForConnection( index );
+                    notificationMsg( "Processed connection request." );
+                }
+                else {
+                    setLowPriorityForConnection( connectionIndex );
+                    notificationMsg( "Need to send more data." );
+                }
             }
 
-            notificationMsg( "Processed connection request." );
         }
         else {
             clearDataForConnection( index );
         }
     }
     else {
-        if ( tcpServerExchangeSocket->isOpen() ) {
+        // trick to check connection.
+        uint8_t tempBuf[ 1 ];
+        int result = write( tcpServerExchangeSocket->getPlatformSocket(), tempBuf, 1 );
+
+        if ( result >= 0 ) {
             notificationMsg( "Trying to send rest of the file." );
-            tryToSendTheRestOfTheFile( index - 1 );
-            notificationMsg( "Send part of the file." );
+            tryToSendTheRestOfTheFile( connectionIndex );
+
+            if ( tcpConnections_[ connectionIndex ].httpFileDescription_.sending ) {
+                notificationMsg( "Send part of the file." );
+                setLowPriorityForConnection( connectionIndex );
+            }
+            else {
+                notificationMsg( "Send last part of the file." );
+                clearDataForConnection( index );
+            }
         }
         else {
             notificationMsg( "Clearing data for connection." );
@@ -234,34 +265,14 @@ bool WorkerThread::processSocketData( uint32_t connectionIndex, int32_t readSize
         return true;
     }
 
-    processHttpRequestForConnection( connectionIndex, request );
-
-    if ( tcpConnections_[ connectionIndex ].sendingFile_ ) {
-        notificationMsg( "processSocketData() if sendingFile" );
-        TcpConnection tcpConnection = tcpConnections_[ connectionIndex ];
-        cpl::Event* tcpSocketEvent = events_[ connectionIndex + 1 ];
-        tcpSocketEvent->initializeEvent( *( tcpConnection.tcpServerExchangeSocket_ ),
-                                             CPL_SOCKET_EVENT_TYPE_WRITE );
-
-        tcpConnections_.erase( tcpConnections_.begin() + ( connectionIndex ) );
-        events_.erase( events_.begin() + ( connectionIndex + 1 ) );
-
-        tcpConnections_.push_back( tcpConnection );
-        events_.push_back( tcpSocketEvent );
-
-        return false;
-    }
-
-    debugMsg( "Response has been sent for connection index " + std::to_string( connectionIndex ) );
+    prepareAndSendHttpRequestForConnection( connectionIndex, request );
 
     return true;
 }
 
-bool WorkerThread::processHttpRequestForConnection( uint32_t connectionIndex,
-                                                    monzza::http::HttpRequest* request )
+bool WorkerThread::prepareAndSendHttpRequestForConnection( uint32_t connectionIndex,
+                                                           monzza::http::HttpRequest* request )
 {
-    debugMsg( "Creating Http response for request..." );
-
     auto httpSerializer = ( tcpConnections_[ connectionIndex ] ).httpResponseSerializer_;
     auto tcpExchangeSocket = ( tcpConnections_[ connectionIndex ] ).tcpServerExchangeSocket_;
 
@@ -270,39 +281,29 @@ bool WorkerThread::processHttpRequestForConnection( uint32_t connectionIndex,
     switch ( request->getHttpMethod() ) {
         case monzza::http::HttpRequestMethod::GET:
         case monzza::http::HttpRequestMethod::HEAD: {
-            debugMsg( "Processing GET or HEAD request.." );
             httpFileDescription = httpFileSender_.getFileDescription( request->getUri() );
 
             switch ( httpFileDescription.httpFileReachability ) {
                 case monzza::http::HttpFileReachability::EXISTS:
-                    debugMsg( "EXISTS" );
                     httpSerializer->createHttpResponseForExistingFile( httpFileDescription );
                     break;
                 case monzza::http::HttpFileReachability::NOT_EXISTS:
-                    debugMsg( "NOT EXISTS" );
                     httpSerializer->createHttpResponseForNotFound();
                     break;
                 case monzza::http::HttpFileReachability::ACCESS_DENIED:
-                    debugMsg( "ACCESS_DENIED" );
                     httpSerializer->createHttpResponseForForbidden();
                     break;
             }
             break;
         }
         case monzza::http::HttpRequestMethod::POST:
-            debugMsg( "Processing POST request.." );
             httpSerializer->createHttpResponseForNotAllowed();
             break;
         default:
-            debugMsg( "Processing NOT ALLOWED request.." );
             httpSerializer->createHttpResponseForNotAllowed();
             break;
     }
 
-    debugMsg( "Http response created." );
-
-    debugMsg( "Trying to send Http response..." );
-    // TODO: check (not to send file if don't need
     uint32_t responseBufSize = httpSerializer->getSerializedHttpResponseSize();
 
     if ( responseBufSize ) {
@@ -310,69 +311,39 @@ bool WorkerThread::processHttpRequestForConnection( uint32_t connectionIndex,
         memset( responseBuffer, 0, responseBufSize );
         if ( httpSerializer->getSerializedHttpResponse( responseBuffer, responseBufSize ) ) {
             tcpExchangeSocket->send( responseBuffer, static_cast<uint16_t>( responseBufSize ) );
-            debugMsg( "Http request header sent." );
+            delete[] responseBuffer;
         }
+
         if ( request->getHttpMethod() == monzza::http::HttpRequestMethod::GET &&
-             httpFileDescription.httpFileReachability == monzza::http::HttpFileReachability::EXISTS)
+             httpFileDescription.httpFileReachability == monzza::http::HttpFileReachability::EXISTS )
         {
-            notificationMsg( "Trying to send file..." );
-            if ( httpFileSender_.sendFileThroughSocket( tcpExchangeSocket, httpFileDescription ) ) {
-                if ( httpFileDescription.offset < httpFileDescription.fileSize ) {
-                    tcpConnections_[ connectionIndex ].httpFileDescription_ = httpFileDescription;
-                    tcpConnections_[ connectionIndex ].sendingFile_ = true;
-                }
-                debugMsg( "File sent" );
-            }
-            else {
-                debugMsg( "Cannot sent file" );
-            }
+            httpFileSender_.sendFileThroughSocket( tcpExchangeSocket, httpFileDescription );
+            tcpConnections_[ connectionIndex ].httpFileDescription_ = httpFileDescription;
         }
     }
-
-    debugMsg( "Http response sent." );
 }
 
 bool WorkerThread::tryToSendTheRestOfTheFile( uint32_t connectionIndex ) {
-    auto tcpExchangeSocket = tcpConnections_[ connectionIndex ].tcpServerExchangeSocket_;
-    auto httpFileDescription = tcpConnections_[ connectionIndex ].httpFileDescription_;
+    return ( httpFileSender_.sendFileThroughSocket( tcpConnections_[ connectionIndex ].tcpServerExchangeSocket_,
+                                                    tcpConnections_[ connectionIndex ].httpFileDescription_ ) );
+}
 
-    if ( httpFileSender_.sendFileThroughSocket( tcpExchangeSocket, httpFileDescription ) ) {
-        if ( httpFileDescription.offset < httpFileDescription.fileSize ) {
-            tcpConnections_[ connectionIndex ].httpFileDescription_ = httpFileDescription;
-            tcpConnections_[ connectionIndex ].sendingFile_ = true;
-        }
-        else {
-            tcpConnections_[ connectionIndex ].httpFileDescription_ = httpFileDescription;
-            tcpConnections_[ connectionIndex ].sendingFile_ = false;
-        }
+void WorkerThread::setLowPriorityForConnection( uint32_t connectionIndex ) {
+    TcpConnection tcpConnection = tcpConnections_[ connectionIndex ];
+    cpl::TcpServerExchangeSocket* tcpServerExchangeSocket;
+    tcpServerExchangeSocket = tcpConnections_[ connectionIndex ].tcpServerExchangeSocket_;
+    cpl::Event* tcpSocketEvent = events_[ connectionIndex + 1 ];
 
-        TcpConnection tcpConnection = tcpConnections_[ connectionIndex ];
-        cpl::Event* tcpSocketEvent = events_[ connectionIndex + 1 ];
+    tcpSocketEvent->initializeEvent( *( tcpServerExchangeSocket ), CPL_SOCKET_EVENT_TYPE_WRITE );
 
-        tcpConnections_.erase( tcpConnections_.begin() + ( connectionIndex ) );
-        events_.erase( events_.begin() + ( connectionIndex + 1 ) );
-
-        tcpConnections_.push_back( tcpConnection );
-        events_.push_back( tcpSocketEvent );
-
-        notificationMsg( "Part of file sent" );
-    }
-    else {
-        tcpConnections_[ connectionIndex ].sendingFile_ = false;
-        cpl::Event* tcpSocketEvent = tcpConnections_[ connectionIndex ].tcpServerExchangeSocketEvent_;
-        tcpSocketEvent->initializeEvent( *( tcpConnections_[ connectionIndex ].tcpServerExchangeSocket_ ),
-                                         CPL_SOCKET_EVENT_TYPE_READ );
-        notificationMsg( "Cannot sent file" );
-    }
-
-    return true;
+    tcpConnections_.erase( tcpConnections_.begin() + ( connectionIndex ) );
+    events_.erase( events_.begin() + ( connectionIndex + 1 ) );
+    tcpConnections_.push_back( tcpConnection );
+    events_.push_back( tcpSocketEvent );
 }
 
 void WorkerThread::clearDataForConnection( uint32_t index ) {
     notificationMsg( "Deleting connection." );
-
-    debugMsg( "Clearing data for connection with connection index: "
-              + std::to_string( index - 1 ) );
 
     delete tcpConnections_[ index - 1 ].httpRequestParser_;
     delete tcpConnections_[ index - 1 ].httpResponseSerializer_;

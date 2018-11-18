@@ -104,8 +104,10 @@ void application() {
     if ( master->start( logger, masterSettings ) ) {
         std::cout << std::endl << "Type any key to stop HTTP server." << std::endl << std::endl;
 
+        // getchar();
+
         while ( true ) {
-            sleep( 86400 );
+            sleep(86400);
         }
 
     } else {
@@ -122,10 +124,11 @@ int main() {
     else {
         setHandlerToSignals();
         application();
-        
+
         while ( true ) {
-            sleep( 86400 );
+            sleep(86400);
         }
+
         return 0;
     }
 }

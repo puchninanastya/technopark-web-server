@@ -647,9 +647,9 @@ bool Event::initializeEvent( TcpServerListenSocket& tcpServerListenSocket,
 bool Event::initializeEvent( TcpServerExchangeSocket& tcpServerExchangeSocket,
                              CPL_SOCKET_EVENT_TYPES socketEventTypes )
 {
-    if ( eventHandle_ != CPL_INVALID_EVENT_HANDLE ) {
-        return false;
-    }
+    //if ( eventHandle_ != CPL_INVALID_EVENT_HANDLE ) {
+    //    return false;
+    //}
 
     if( !tcpServerExchangeSocket.isOpen() ) {
         return false;

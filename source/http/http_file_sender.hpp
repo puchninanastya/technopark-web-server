@@ -24,8 +24,10 @@ namespace monzza {
         class HttpFileDescription {
         public:
             HttpFileDescription() {
+                httpFileReachability = HttpFileReachability::NOT_EXISTS;
                 fileSize = 0;
                 offset = 0;
+                sending = false;
             }
 
             HttpFileReachability httpFileReachability;
@@ -34,6 +36,8 @@ namespace monzza {
             std::string fileType;
             uint32_t fileSize;
             off_t offset;
+
+            bool sending;
         };
 
         class HttpFileSender : public monzza::logger::LogFunctionality {

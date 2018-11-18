@@ -1,5 +1,7 @@
 #include "local_logger.hpp"
 
+using namespace monzza::logger;
+
 LocalLogger::LocalLogger() :
 	logLevel_( LogLevel::LEVEL_1 ),
 	logger_( nullptr )
@@ -48,7 +50,7 @@ void LocalLogger::resetLogLevel() {
 void LocalLogger::criticalErrorMsg( const std::string& msg ) {
 	LogMessage* logMessage = nullptr;
 	if ( logger_ != nullptr ) {
-		logMessage = new LogMessage;
+		logMessage = new LogMessage();
 		logMessage->setLogMessageType( LogMessage::LogMessageType::CRITICAL_ERROR_MSG );
 		logMessage->setTime();
 		logMessage->setFrom( moduleName_ );
@@ -64,7 +66,7 @@ void LocalLogger::errorMsg( const std::string& msg ) {
 	LogMessage* logMessage = nullptr;
 	if ( logLevel_ != LogLevel::LEVEL_0 ) {
 		if ( logger_ != nullptr ) {
-			logMessage = new LogMessage;
+			logMessage = new LogMessage();
 			logMessage->setLogMessageType( LogMessage::LogMessageType::ERROR_MSG );
 			logMessage->setTime();
 			logMessage->setFrom( moduleName_ );
@@ -81,7 +83,7 @@ void LocalLogger::notificationMsg( const std::string& msg ) {
 	LogMessage* logMessage = nullptr;
 	if ( logLevel_ != LogLevel::LEVEL_0 ) {
 		if ( logger_ != nullptr ) {
-			logMessage = new LogMessage;
+			logMessage = new LogMessage();
 			logMessage->setLogMessageType( LogMessage::LogMessageType::NOTIFICATION_MSG );
 			logMessage->setTime();
 			logMessage->setFrom( moduleName_ );
@@ -98,7 +100,7 @@ void LocalLogger::warnMsg( const std::string& msg ) {
 	LogMessage* logMessage = nullptr;
 	if ( ( logLevel_ == LogLevel::LEVEL_2 ) || ( logLevel_ == LogLevel::LEVEL_3) ) {
 		if ( logger_ != nullptr ) {
-			logMessage = new LogMessage;
+			logMessage = new LogMessage();
 			logMessage->setLogMessageType( LogMessage::LogMessageType::WARNING_MSG );
 			logMessage->setTime();
 			logMessage->setFrom( moduleName_ );
@@ -115,7 +117,7 @@ void LocalLogger::debugMsg( const std::string& msg ) {
 	LogMessage* logMessage = nullptr;
 	if ( logLevel_ == LogLevel::LEVEL_3 ) {
 		if ( logger_ != nullptr ) {
-			logMessage = new LogMessage;
+			logMessage = new LogMessage();
 			logMessage->setLogMessageType( LogMessage::LogMessageType::DEBUG_MSG );
 			logMessage->setTime();
 			logMessage->setFrom( moduleName_ );

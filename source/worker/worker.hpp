@@ -9,16 +9,22 @@
 #include "worker_thread.hpp"
 #include "worker_settings.hpp"
 
-class Worker : public LogFunctionality {
-public:
-    Worker();
+namespace monzza {
+    namespace worker {
+        class Worker : public monzza::logger::LogFunctionality {
+        public:
+            Worker();
 
-    bool start( Logger* logger, Table* table, WorkerSettings* workerSettings );
-    bool addNewConnection( cpl::TcpServerExchangeSocket* tcpServerExchangeSocket );
-    bool stop();
-private:
-    std::thread*  thread_;
-    WorkerThread* workerThread_;
-};
+            bool start( monzza::logger::Logger* logger,
+                        monzza::table::Table* table,
+                        WorkerSettings* workerSettings );
+            bool addNewConnection( cpl::TcpServerExchangeSocket* tcpServerExchangeSocket );
+            bool stop();
+        private:
+            std::thread*  thread_;
+            WorkerThread* workerThread_;
+        };
+    }
+}
 
 #endif // MONZZA_WORKER_HPP

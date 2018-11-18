@@ -3,25 +3,33 @@
 using namespace monzza::http;
 
 HttpRequest::HttpRequest() :
-        httpMethod_( HttpRequestMethod::UNDEFINED ),
-        versionMajor_(0),
-        versionMinor_(0),
-        keepAlive_( false ) {}
+    httpMethod_( HttpRequestMethod::UNDEFINED ),
+    versionMajor_( 0 ),
+    versionMinor_( 0 ),
+    keepAlive_( false )
+{}
+
+HttpRequest::~HttpRequest() {
+    for ( auto header : headers_ ) {
+        delete header;
+    }
+}
+
 
 HttpRequestMethod HttpRequest::getHttpMethod() const {
     return httpMethod_;
 }
 
 void HttpRequest::setHttpMethod( HttpRequestMethod httpMethod ) {
-    HttpRequest::httpMethod_ = httpMethod;
+    httpMethod_ = httpMethod;
 }
 
-const std::string &HttpRequest::getUri() const {
+const std::string& HttpRequest::getUri() const {
     return uri_;
 }
 
 void HttpRequest::setUri( const std::string& uri ) {
-    HttpRequest::uri_ = uri;
+    uri_ = uri;
 }
 
 int8_t HttpRequest::getVersionMajor() const {
@@ -29,7 +37,7 @@ int8_t HttpRequest::getVersionMajor() const {
 }
 
 void HttpRequest::setVersionMajor( int8_t versionMajor ) {
-    HttpRequest::versionMajor_ = versionMajor;
+    versionMajor_ = versionMajor;
 }
 
 int8_t HttpRequest::getVersionMinor() const {
@@ -37,9 +45,9 @@ int8_t HttpRequest::getVersionMinor() const {
 }
 
 void HttpRequest::setVersionMinor( int8_t versionMinor ) {
-    HttpRequest::versionMinor_ = versionMinor;
+    versionMinor_ = versionMinor;
 }
 
-void HttpRequest::addHeaderItem( HttpRequestHeaderItem* headerItem ) {
+void HttpRequest::addHeaderItem( HttpHeaderItem* headerItem ) {
     headers_.push_back( headerItem );
 }

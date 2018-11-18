@@ -1,5 +1,7 @@
 #include "logger.hpp"
 
+using namespace monzza::logger;
+
 bool Logger::start() {
     loggerThread_ = new LoggerThread();
     thread_ = new std::thread( std::ref( *(loggerThread_) ) );

@@ -1,5 +1,7 @@
 #include "log_message.hpp"
 
+using namespace monzza::logger;
+
 bool LogMessage::setLogMessageType( const LogMessageType& logMessageType ) {
 	logMessageType_ = logMessageType;
 	return true;
@@ -44,8 +46,8 @@ std::string LogMessage::toString() const {
 	str += "  " ;
 
     std::string moduleName = getFrom();
-    if ( moduleName.size() < 14 ) {
-        while ( moduleName.size() <= 14 ) {
+    if ( moduleName.size() < 20 ) {
+        while ( moduleName.size() <= 20 ) {
 			moduleName.push_back( ' ' );
 		}
     }
@@ -72,7 +74,7 @@ std::string LogMessage::toString() const {
 
 	std::string logMsgText = getText();
 	std::string tabStr;
-	while ( tabStr.size() <= 60 ) {
+	while ( tabStr.size() <= 66 ) {
 		tabStr.push_back(' ');
 	}
 
@@ -86,7 +88,7 @@ std::string LogMessage::toString() const {
 			currentTextStringSize = 0;
 		}
 		else {
-			if ( currentTextStringSize <= 60 ) {
+			if ( currentTextStringSize <= 66 ) {
 				ss << byte;
 			}
 			else {

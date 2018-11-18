@@ -5,29 +5,14 @@
 #include <string>
 #include <vector>
 
+#include "http_helpers.hpp"
+
 namespace monzza {
     namespace http {
-        enum HttpRequestMethod {
-            UNDEFINED,
-            OPTIONS,
-            GET,
-            HEAD,
-            POST,
-            PUT,
-            DELETE,
-            TRACE,
-            CONNECT
-        };
-
-        class HttpRequestHeaderItem {
-        public:
-            std::string name;
-            std::string value;
-        };
-
         class HttpRequest {
         public:
             HttpRequest();
+            ~HttpRequest();
 
             HttpRequestMethod getHttpMethod() const;
             const std::string &getUri() const;
@@ -35,18 +20,18 @@ namespace monzza {
             int8_t getVersionMinor() const;
 
             void setHttpMethod( HttpRequestMethod httpMethod );
-            void setUri(const std::string &uri);
+            void setUri(const std::string& uri);
             void setVersionMajor( int8_t versionMajor );
             void setVersionMinor( int8_t versionMinor );
 
-            void addHeaderItem( HttpRequestHeaderItem* headerItem );
+            void addHeaderItem( HttpHeaderItem* headerItem );
 
         private:
             HttpRequestMethod httpMethod_;
             std::string uri_;
             int8_t versionMajor_;
             int8_t versionMinor_;
-            std::vector<HttpRequestHeaderItem*> headers_;
+            std::vector<HttpHeaderItem*> headers_;
             std::vector<uint8_t> content_;
             bool keepAlive_;
         };

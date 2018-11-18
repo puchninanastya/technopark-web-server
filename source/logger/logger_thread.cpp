@@ -1,8 +1,6 @@
 #include "logger_thread.hpp"
 
-// =================================================================
-// ========== LoggerThreadServiceMessage class definition ==========
-// =================================================================
+using namespace monzza::logger;
 
 bool LoggerThreadServiceMessage::setResponseType( LoggerThreadServiceMessage::ResponseType responseType ) {
     responseType_ = responseType;
@@ -21,10 +19,6 @@ bool LoggerThreadServiceMessage::setCommandType( LoggerThreadServiceMessage::Com
 LoggerThreadServiceMessage::CommandType LoggerThreadServiceMessage::getCommandType() const {
     return commandType_;
 }
-
-// ===================================================
-// ========== LoggerThread class definition ==========
-// ===================================================
 
 LoggerThread::LoggerThread() {
     logLevel_ = LogLevel::LEVEL_1;
@@ -119,6 +113,7 @@ void LoggerThread::processLogMessages() {
         std::cout << logMessage->toString() << std::endl;
         spdLogger_->info( logMessage->toString() );
         delete logMessage;
+        logMessage = nullptr;
     }
 }
 

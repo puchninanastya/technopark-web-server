@@ -1,11 +1,13 @@
 #include "master.hpp"
 
-Master::Master() {
-    thread_ = nullptr;
-    masterThread_ = nullptr;
-}
+using namespace monzza::master;
 
-bool Master::start( Logger* logger, MasterSettings* masterSettings ) {
+Master::Master() :
+    thread_( nullptr ),
+    masterThread_(nullptr )
+{}
+
+bool Master::start( monzza::logger::Logger* logger, MasterSettings* masterSettings ) {
     if ( ( logger == nullptr ) || ( masterSettings == nullptr ) ) {
         return false;
     }

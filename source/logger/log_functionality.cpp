@@ -1,5 +1,7 @@
 #include "log_functionality.hpp"
 
+using namespace monzza::logger;
+
 bool LogFunctionality::setLogger( Logger* logger ) {
 	return localLogger_.setLogger( logger );
 }

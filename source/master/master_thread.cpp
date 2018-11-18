@@ -1,8 +1,8 @@
 #include "master_thread.hpp"
 
-// =================================================================
-// ========== MasterThreadServiceMessage class definition ==========
-// =================================================================
+using namespace monzza::master;
+
+using WorkerPair = std::pair<monzza::worker::Worker*, monzza::worker::WorkerSettings*>;
 
 bool MasterThreadServiceMessage::setResponseType( MasterThreadServiceMessage::ResponseType responseType ) {
     responseType_ = responseType;
@@ -22,13 +22,9 @@ MasterThreadServiceMessage::CommandType MasterThreadServiceMessage::getCommandTy
     return commandType_;
 }
 
-// ===================================================
-// ========== MasterThread class definition ==========
-// ===================================================
-
 MasterThread::MasterThread() {
     workerIdToUse_ = 0;
-    table_ = new Table;
+    table_ = new monzza::table::Table;
     breakThreadLoop_  = false;
     events_.push_back( inputServiceMessages_.getEventHandle() );
     events_.push_back( table_->getUpdatedInformationEvent_() );
@@ -38,7 +34,7 @@ MasterThread::~MasterThread() {
     delete table_;
 }
 
-bool MasterThread::initialize( Logger* logger, MasterSettings* masterSettings ) {
+bool MasterThread::initialize( monzza::logger::Logger* logger, MasterSettings* masterSettings ) {
     if ( ( logger == nullptr ) || ( masterSettings == nullptr ) ) {
         return false;
     }
@@ -91,15 +87,17 @@ void MasterThread::operator()() {
     notificationMsg( "Module started." );
 
     notificationMsg( "Starting worker threads." );
-    Worker* worker;
-    WorkerSettings* workerSettings;
+    monzza::worker::Worker* worker;
+    monzza::worker::WorkerSettings* workerSettings;
     bool workersStarted = true;
+
     for ( uint32_t i = 0; i < masterSettings_->getNumberOfWorkers(); i++ ) {
-        workerSettings = new WorkerSettings;
+        workerSettings = new monzza::worker::WorkerSettings;
         workerSettings->setId( i );
-        worker = new Worker;
+        workerSettings->setDocumentRoot( masterSettings_->getDocumentRoot() );
+        worker = new monzza::worker::Worker;
         if ( worker->start( getLogger(), table_, workerSettings ) ) {
-            workers_[ i ] = std::pair<Worker*, WorkerSettings*>( worker, workerSettings );
+            workers_[ i ] = WorkerPair( worker, workerSettings );
         }
         else {
             workersStarted = false;
@@ -176,36 +174,36 @@ void MasterThread::stopServiceMsgHandler( MasterThreadServiceMessage* masterThre
     listenSocketEvent_ = cpl::Event();
 
     notificationMsg( "Stopping worker threads." );
+
     for ( auto worker : workers_ ) {
         worker.second.first->stop();
         delete worker.second.first;
         delete worker.second.second;
     }
-    sleep( 2 );
+    sleep( 1 );
+
     notificationMsg( "Worker threads stopped." );
 
     workers_.clear();
 
-    sleep( 2 );
+    sleep( 1 );
 
     breakThreadLoop_ = true;
 }
 
 void MasterThread::processNewAcceptConnection() {
-    cpl::TcpServerExchangeSocket* tcpServerExchangeSocket = listenSocket_.accept();
-    if ( tcpServerExchangeSocket != nullptr ) {
+    auto tcpServerExchangeSocket = new cpl::TcpServerExchangeSocket();
+
+    if ( listenSocket_.accept( tcpServerExchangeSocket ) ) {
         workers_[ workerIdToUse_ ].first->addNewConnection( tcpServerExchangeSocket );
-        //if ( workerIdToUse_ == masterSettings_->getNumberOfWorkers() - 1 ) {
-        //    workerIdToUse_ = 0;
-        //}
-        //else {
-        //    workerIdToUse_++;
-        //}
+    }
+    else {
+        delete tcpServerExchangeSocket;
     }
 }
 
 void MasterThread::updateOptimalWorkerIdToUse() {
-    notificationMsg( "Calculating optimal worker id to use." );
+    debugMsg( "Calculating optimal worker id to use." );
 
     table_->readWorkersInformation( workersInformation_ );
 
@@ -227,5 +225,5 @@ void MasterThread::updateOptimalWorkerIdToUse() {
 
     workerIdToUse_ = optimalWorkerId;
 
-    notificationMsg( "Calculated optimal worker id to use: " + std::to_string( optimalWorkerId ) );
+    debugMsg( "Calculated optimal worker id to use: " + std::to_string( optimalWorkerId ) );
 }

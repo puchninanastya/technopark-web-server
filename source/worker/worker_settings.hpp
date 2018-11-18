@@ -1,16 +1,25 @@
 #ifndef MONZZA_WORKER_SETTINGS_HPP
 #define MONZZA_WORKER_SETTINGS_HPP
 
-#include <stdint-gcc.h>
+#include <cstdint>
+#include <string>
 
-class WorkerSettings {
-public:
-    explicit WorkerSettings();
+namespace monzza {
+    namespace worker {
+        class WorkerSettings {
+        public:
+            explicit WorkerSettings();
 
-    bool setId( const uint32_t id );
-    uint32_t getId() const;
-private:
-    uint32_t id_;
-};
+            bool setId( const uint32_t id );
+            uint32_t getId() const;
+
+            bool setDocumentRoot( std::string documentRoot );
+            std::string getDocumentRoot() const;
+        private:
+            uint32_t id_;
+            std::string documentRoot_;
+        };
+    }
+}
 
 #endif // MONZZA_WORKER_SETTINGS_HPP

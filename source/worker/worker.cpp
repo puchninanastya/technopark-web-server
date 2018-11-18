@@ -1,11 +1,16 @@
 #include "worker.hpp"
 
-Worker::Worker() {
-    thread_ = nullptr;
-    workerThread_ = nullptr;
-}
+using namespace monzza::worker;
 
-bool Worker::start( Logger* logger, Table* table, WorkerSettings* workerSettings ) {
+Worker::Worker() :
+    thread_( nullptr ),
+    workerThread_( nullptr )
+{}
+
+bool Worker::start( monzza::logger::Logger* logger,
+                    monzza::table::Table* table,
+                    WorkerSettings* workerSettings )
+{
     if ( ( logger == nullptr ) || ( table == nullptr ) || ( workerSettings == nullptr ) ) {
         return false;
     }

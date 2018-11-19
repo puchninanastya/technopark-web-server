@@ -13,7 +13,7 @@ static monzza::settings::Settings*      monzzaCoreSettings = nullptr;
 static monzza::logger::Logger*          logger = nullptr;
 static cpl::IpAddress*                  serverIpAddress = nullptr;
 
-void cleanUpBeforeExit() {
+void cleanUpAndExit() {
     std::cout << "Cleaning up before exit.." << std::endl;
     if ( master != nullptr) {
         master->stop();
@@ -27,7 +27,9 @@ void cleanUpBeforeExit() {
     delete serverIpAddress;
     delete masterSettings;
     delete monzzaCoreSettings;
+    cpl::CplBase::shutdown();
     std::cout << "Cleaning up ended." << std::endl;
+    exit(0);
 }
 
 void exitHandler( int signal, siginfo_t* siginfo, void* context ) {
@@ -35,9 +37,7 @@ void exitHandler( int signal, siginfo_t* siginfo, void* context ) {
     std::cout << "Signal Code = " << siginfo->si_code << std::endl;
     std::cout << "Sending PID = " << ( long )siginfo->si_pid << std::endl;
     std::cout << "Sending User ID = " << ( long )siginfo->si_uid << std::endl;
-    cleanUpBeforeExit();
-    cpl::CplBase::shutdown();
-    exit(0);
+    cleanUpAndExit();
 }
 
 bool setHandlerToSignals() {
@@ -77,8 +77,7 @@ void application() {
 
     if ( !logger->start() ) {
         std::cout << "Error: Failed to start Logger." << std::endl;
-        delete logger;
-        return;
+        cleanUpAndExit();
     }
 
     monzzaCoreSettings = new monzza::settings::Settings();
@@ -86,12 +85,14 @@ void application() {
     if ( !monzzaCoreSettings->readSettingsFromConfigFile( MONZZA_SERVER_CONFIG_FILE ) ) {
         std::cout << "Error: Failed to read settings from httpd.conf." << std::endl;
         logger->stop();
-        delete logger;
-        return;
+        cleanUpAndExit();
     }
 
     serverIpAddress = new cpl::IpAddress;
-    serverIpAddress->setPortNumber( MONZZA_SERVER_PORT );
+    if ( !serverIpAddress->setPortNumber( MONZZA_SERVER_PORT ) ) {
+        std::cout << "Wrong port number in configuration." << std::endl;
+        cleanUpAndExit();
+    }
 
     masterSettings = new monzza::master::MasterSettings;
     masterSettings->setIpAddress( *serverIpAddress );
@@ -104,15 +105,15 @@ void application() {
     if ( master->start( logger, masterSettings ) ) {
         std::cout << std::endl << "Type any key to stop HTTP server." << std::endl << std::endl;
 
-        // getchar();
-
+        // getchar(); // Don't work in docker. Little trick:
         while ( true ) {
             sleep(86400);
         }
+        // return;
 
     } else {
         std::cout << "Failed to start HTTP server." << std::endl;
-        cleanUpBeforeExit();
+        cleanUpAndExit();
     }
 }
 
@@ -125,10 +126,13 @@ int main() {
         setHandlerToSignals();
         application();
 
+
+        // getchar(); // Don't work in docker. Little trick:
         while ( true ) {
             sleep(86400);
         }
 
+        cleanUpAndExit();
         return 0;
     }
 }

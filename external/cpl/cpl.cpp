@@ -58,7 +58,7 @@ bool IpAddress::setIp( const std::string& ip ) {
 }
 
 bool IpAddress::setPortNumber( const uint16_t& portNumber ) {
-    if ( 1024 <= portNumber && portNumber <= 65535 ) {
+    if ( 0 <= portNumber && portNumber <= 65535 ) {
         portNumber_ = portNumber;
         return true;
     }

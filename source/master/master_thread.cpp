@@ -54,7 +54,7 @@ bool MasterThread::initialize( monzza::logger::Logger* logger, MasterSettings* m
 
             setLogger( logger );
             setModuleName( "MasterThread  " );
-
+            notificationMsg( "Initialized on port " + std::to_string( masterSettings->getIpAddress().getPortNumber() ) );
             return true;
         }
         else {

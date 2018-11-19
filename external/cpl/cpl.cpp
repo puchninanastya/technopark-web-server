@@ -553,10 +553,7 @@ uint32_t EventExpectant::waitForEvents( std::vector<Event*>* events,
             for ( uint16_t j = 0; j < waitResult; j++ ) {
                 if ( epollEvents[ j ].data.fd == events->at( i )->getEventHandle() ) {
                     delete[] epollEvents;
-                    return signaledEventNumber;
-                }
-                else {
-                    signaledEventNumber++;
+                    return i;
                 }
             }
         }
